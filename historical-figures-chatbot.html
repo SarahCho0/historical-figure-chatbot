@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice 4 – Historical Figures Chatbot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Special+Elite&family=Philosopher:ital@0;1&family=Cinzel:wght@400;600&family=Cinzel+Decorative:wght@400;700&family=Share+Tech+Mono&family=Spectral:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nanum+Myeongjo:wght@400;700&family=Black+Han+Sans&family=Jua&family=Noto+Sans+KR:wght@400;700&family=MedievalSharp&family=Uncial+Antiqua&family=GFS+Didot&display=swap');
+
+  :root {
+    --bg: #12100e;
+    --surface: #1c1814;
+    --card: #26211c;
+    --border: #3d3329;
+    --gold: #c9a84c;
+    --gold-dim: #7a6330;
+    --cream: #f0e6c8;
+    --text: #e8dcc8;
+    --muted: #8a7d68;
+    --red: #c0392b;
+    --radius: 14px;
+    --display-font: 'IM Fell English', serif;
+    --bubble-font: 'IM Fell English', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Spectral', Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.6s ease, color 0.4s ease, opacity 0.2s ease;
+  }
+
+  /* Top Bar */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar h1 {
+    font-family: var(--display-font);
+    font-size: 1.4rem;
+    color: var(--gold);
+    letter-spacing: .02em;
+  }
+
+  .topbar p { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+
+  /* Layout */
+  .layout {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 65px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 12px;
+  }
+
+  input[type="password"] {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  input[type="password"]:focus { border-color: var(--gold); }
+
+  .figure-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .figure-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.88rem;
+    padding: 12px 14px;
+    text-align: left;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .figure-btn:hover { border-color: var(--gold-dim); background: #2e271f; }
+
+  .figure-btn.active {
+    border-color: var(--gold);
+    background: rgba(201,168,76,.12);
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .figure-era {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  .active-figure-card {
+    padding: 16px;
+    background: rgba(201,168,76,.08);
+    border-radius: 10px;
+    border: 1px solid var(--gold-dim);
+  }
+
+  .active-figure-card .name {
+    font-family: var(--display-font);
+    font-size: 1.05rem;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .active-figure-card .desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .chat-header .who {
+    font-family: var(--display-font);
+    font-size: 1.15rem;
+    color: var(--gold);
+  }
+
+  .chat-header .hint { color: var(--muted); font-size: 0.8rem; }
+
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    transition: all .2s;
+  }
+
+  .clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .messages::-webkit-scrollbar { width: 6px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .msg {
+    display: flex;
+    gap: 14px;
+    animation: fadeSlide .3s ease;
+    max-width: 82%;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg.bot  { align-self: flex-start; }
+
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+  }
+
+  .msg.bot .avatar { background: var(--card); border-color: var(--gold-dim); }
+  .msg.user .avatar { background: #1a2535; border-color: #2d4a70; }
+
+  .bubble {
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 0.93rem;
+    line-height: 1.75;
+  }
+
+  .msg.user .bubble {
+    background: #1e2d42;
+    border: 1px solid #2d4a70;
+    border-top-right-radius: 4px;
+    color: #c8d9ef;
+  }
+
+  .msg.bot .bubble {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    font-family: var(--bubble-font);
+    font-size: 0.97rem;
+    color: var(--cream);
+  }
+
+  .bot-name {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* Typing indicator */
+  .typing-dots span {
+    display: inline-block;
+    width: 7px; height: 7px;
+    background: var(--gold-dim);
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: bounce .9s infinite;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: .2s; }
+  .typing-dots span:nth-child(3) { animation-delay: .4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40%           { transform: translateY(-7px); }
+  }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state .icon { font-size: 3rem; opacity: .5; }
+  .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+  /* Scrollable message container fix */
+  #messagesContainer {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Input */
+  .input-area {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .input-area input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.93rem;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .input-area input:focus { border-color: var(--gold); }
+  .input-area input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: 10px;
+    color: #12100e;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0 20px;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover:not(:disabled) {
+    background: #e0bb5a;
+    transform: translateY(-1px);
+  }
+
+  .send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Markdown inside .bubble ── */
+  .bubble p { margin: .4em 0; }
+  .bubble p:first-child { margin-top: 0; }
+  .bubble p:last-child  { margin-bottom: 0; }
+  .bubble h1, .bubble h2, .bubble h3 { font-family: inherit; margin: .6em 0 .2em; color: var(--gold); }
+  .bubble h1 { font-size: 1.1em; }
+  .bubble h2 { font-size: 1.0em; }
+  .bubble h3 { font-size: .95em; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+  .bubble strong { color: var(--gold); font-weight: 700; }
+  .bubble em     { font-style: italic; opacity: .88; }
+  .bubble code   { background: rgba(0,0,0,.35); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: .85em; }
+  .bubble ul, .bubble ol { margin: .5em 0 .5em 1.4em; }
+  .bubble li     { margin: 3px 0; line-height: 1.6; }
+  .bubble blockquote {
+    border-left: 3px solid var(--gold-dim);
+    margin: .6em 0; padding: .4em .8em;
+    opacity: .85; font-style: italic;
+    background: rgba(201,168,76,.05); border-radius: 0 6px 6px 0;
+  }
+  .bubble hr { border: none; border-top: 1px solid var(--border); margin: .7em 0; }
+
+  /* ── Suggestion chips ── */
+  .suggestions-strip {
+    padding: 10px 24px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .suggestions-strip.hidden { display: none; }
+  .suggestions-strip::-webkit-scrollbar { height: 3px; }
+  .suggestions-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .sugg-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sugg-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.78rem;
+    padding: 5px 14px;
+    transition: all .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sugg-chip:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+    background: rgba(201,168,76,.1);
+    transform: translateY(-1px);
+  }
+
+  /* ── Continue button ── */
+  .continue-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    border-radius: 20px;
+    color: var(--gold);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.8rem;
+    padding: 5px 16px;
+    transition: all .2s;
+  }
+  .continue-btn:hover:not(:disabled) {
+    background: rgba(201,168,76,.15);
+    transform: translateY(-1px);
+  }
+  .continue-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .continue-divider { border: none; border-top: 1px dashed var(--border); margin: 8px 0; }
+
+  /* ── Mode Tabs ── */
+  .modes-strip {
+    padding: 7px 20px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    align-items: center;
+    transition: background 0.5s ease, border-color 0.45s ease;
+  }
+  .modes-strip.hidden { display: none; }
+  .modes-strip::-webkit-scrollbar { height: 3px; }
+  .modes-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .modes-label {
+    font-size: 0.66rem;
+    color: var(--muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-right: 2px;
+  }
+  .mode-tab {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.76rem;
+    padding: 4px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: border-color .25s, color .25s, background 0.5s, box-shadow .25s;
+  }
+  .mode-tab:hover {
+    border-color: var(--gold-dim);
+    color: var(--text);
+  }
+  .mode-tab.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px var(--gold);
+  }
+  .mode-badge {
+    font-size: 0.58rem;
+    background: var(--gold-dim);
+    color: var(--surface);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 700;
+    margin-left: 1px;
+    transition: background 0.5s ease;
+  }
+  .mode-tab.active .mode-badge { background: var(--gold); }
+
+  @media (max-width: 640px) {
+    .sidebar { width: 220px; }
+    .topbar h1 { font-size: 1.1rem; }
+  }
+
+  /* ── Language Toggle ── */
+  .lang-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px;
+    flex-shrink: 0;
+    transition: background 0.5s ease, border-color 0.45s ease;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    letter-spacing: .05em;
+    transition: background 0.25s, color 0.25s;
+  }
+  .lang-btn.active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  .lang-btn:not(.active):hover {
+    color: var(--gold);
+  }
+
+  /* ── Flag badge beside name ── */
+  .figure-flag {
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* ── Theme transitions ── */
+  .topbar, .sidebar, .sidebar-section,
+  .chat-header, .input-area, .suggestions-strip,
+  .figure-btn, .active-figure-card, .clear-btn,
+  .sugg-chip, .continue-btn {
+    transition: background 0.5s ease, background-color 0.5s ease,
+                border-color 0.45s ease, color 0.4s ease;
+  }
+  .msg.bot .bubble {
+    transition: background 0.5s ease, border-color 0.45s ease, color 0.4s ease;
+  }
+  .avatar {
+    transition: background 0.5s ease, border-color 0.45s ease;
+  }
+  .send-btn {
+    transition: background-color 0.5s ease, color 0.4s ease, transform 0.15s ease, opacity 0.2s;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1 id="topbarTitle">⚜ Historical Figures Chatbot</h1>
+    <p id="topbarSub">Practice 4 — Converse with characters from history</p>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="langEN" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" id="langKO" onclick="setLang('ko')">한국어</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label" id="labelApiKey">🔑 OpenAI API Key</div>
+      <input type="password" id="apiKey" placeholder="sk-..." />
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label" id="labelSelectFigure">Select Figure</div>
+      <div class="figure-list" id="figureList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <div class="sidebar-section" id="figureInfoSection" style="display:none;">
+      <div class="sidebar-label" id="labelSelectedFigure">Selected Figure</div>
+      <div class="active-figure-card">
+        <div class="name" id="figureInfoName"></div>
+        <div class="desc" id="figureInfoDesc"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div>
+        <div class="who" id="chatWho" data-placeholder-en="Please select a figure" data-placeholder-ko="인물을 선택하세요">Please select a figure</div>
+        <div class="hint" id="chatHint" data-placeholder-en="Choose a historical figure from the left sidebar" data-placeholder-ko="왼쪽 사이드바에서 역사적 인물을 선택하세요">Choose a historical figure from the left sidebar</div>
+      </div>
+      <button class="clear-btn" id="clearBtn" onclick="clearChat()">Clear Chat</button>
+      <!-- clearBtn text updated by setLang -->
+    </div>
+
+    <!-- Chat mode selection strip -->
+    <div class="modes-strip hidden" id="modesStrip"></div>
+
+    <div id="messagesContainer">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🏛️</div>
+        <p id="emptyStateText">Select a historical figure and<br>start a conversation.<br><br>Ask them about their era,<br>philosophy, and achievements.</p>
+      </div>
+      <div class="messages" id="messages" style="display:none;"></div>
+    </div>
+
+    <div class="suggestions-strip hidden" id="suggestionsStrip">
+      <span class="sugg-label" id="suggLabel">💡 Example Questions</span>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your question..." disabled />
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>→</button>
+      <!-- placeholder updated by setLang -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────
+   Language
+   ────────────────────────────────────────── */
+let currentLang = 'en';
+
+const I18N = {
+  en: {
+    topbarTitle: '⚜ Historical Figures Chatbot',
+    topbarSub: 'Practice 4 — Converse with characters from history',
+    labelApiKey: '🔑 OpenAI API Key',
+    labelSelectFigure: 'Select Figure',
+    labelSelectedFigure: 'Selected Figure',
+    clearBtn: 'Clear Chat',
+    emptyState: 'Select a historical figure and<br>start a conversation.<br><br>Ask them about their era,<br>philosophy, and achievements.',
+    suggLabel: '💡 Example Questions',
+    modesLabel: '⚙️ Mode',
+    inputPlaceholder: fig => `Ask ${fig} a question...`,
+    inputPlaceholderDefault: 'Type your question...',
+    chatWhoDefault: 'Please select a figure',
+    chatHintDefault: 'Choose a historical figure from the left sidebar',
+    greeting: fig => `Hello! I am **${fig.name}** (${fig.era}).\n\n> ${fig.desc}\n\nFeel free to ask me anything. You may also click the **example questions** below to get started! 🏛`,
+    resetMsg: fig => `The conversation has been reset. I am ${fig.name}. Shall we start again?`,
+    continueBtn: '📖 Continue Reading',
+    continuePending: '...',
+    continuePrompt: 'Please continue from where you left off.',
+    errPrefix: 'I apologize. An error occurred: ',
+    alertApi: 'Please enter your API Key.',
+  },
+  ko: {
+    topbarTitle: '⚜ 역사적 인물 챗봇',
+    topbarSub: '실습 4 — 역사 속 인물들과 직접 대화하세요',
+    labelApiKey: '🔑 OpenAI API Key',
+    labelSelectFigure: '인물 선택',
+    labelSelectedFigure: '선택된 인물',
+    clearBtn: '대화 초기화',
+    emptyState: '역사적 인물을 선택하고<br>대화를 시작해보세요.<br><br>그들의 시대, 철학,<br>업적에 대해 질문해보세요.',
+    suggLabel: '💡 예시 질문',
+    modesLabel: '⚙️ 모드',
+    inputPlaceholder: fig => `${fig}에게 질문하세요...`,
+    inputPlaceholderDefault: '질문을 입력하세요...',
+    chatWhoDefault: '인물을 선택하세요',
+    chatHintDefault: '왼쪽 사이드바에서 역사적 인물을 선택하세요',
+    greeting: fig => `안녕하세요! 저는 **${fig.nameKo || fig.name}** (${fig.eraKo || fig.era})입니다.\n\n> ${fig.descKo || fig.desc}\n\n무엇이든 편하게 질문하세요. 아래 **예시 질문**을 클릭해도 됩니다! 🏛`,
+    resetMsg: fig => `대화가 초기화되었습니다. 저는 ${fig.nameKo || fig.name}입니다. 다시 시작할까요?`,
+    continueBtn: '📖 계속 읽기',
+    continuePending: '...',
+    continuePrompt: '이어서 계속 답변해 주세요.',
+    errPrefix: '죄송합니다. 오류가 발생했습니다: ',
+    alertApi: 'API Key를 입력해주세요.',
+  }
+};
+
+function t(key, ...args) {
+  const val = I18N[currentLang][key];
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('langEN').classList.toggle('active', lang === 'en');
+  document.getElementById('langKO').classList.toggle('active', lang === 'ko');
+  const L = I18N[lang];
+  document.getElementById('topbarTitle').textContent = L.topbarTitle;
+  document.getElementById('topbarSub').textContent = L.topbarSub;
+  document.getElementById('labelApiKey').textContent = L.labelApiKey;
+  document.getElementById('labelSelectFigure').textContent = L.labelSelectFigure;
+  document.getElementById('labelSelectedFigure').textContent = L.labelSelectedFigure;
+  document.getElementById('clearBtn').textContent = L.clearBtn;
+  document.getElementById('emptyStateText').innerHTML = L.emptyState;
+  const suggLabel = document.getElementById('suggLabel');
+  if (suggLabel) suggLabel.textContent = L.suggLabel;
+  // update input placeholder
+  const inp = document.getElementById('userInput');
+  if (selectedFigure) {
+    inp.placeholder = L.inputPlaceholder(lang === 'ko' ? (selectedFigure.nameKo || selectedFigure.name) : selectedFigure.name);
+    document.getElementById('chatWho').textContent = lang === 'ko' ? (selectedFigure.nameKo || selectedFigure.name) : selectedFigure.name;
+    document.getElementById('chatHint').textContent = lang === 'ko' ? (selectedFigure.eraKo || selectedFigure.era) : selectedFigure.era;
+    document.getElementById('figureInfoName').textContent = `${selectedFigure.emoji} ${lang === 'ko' ? (selectedFigure.nameKo || selectedFigure.name) : selectedFigure.name}`;
+    document.getElementById('figureInfoDesc').textContent = lang === 'ko' ? (selectedFigure.descKo || selectedFigure.desc) : selectedFigure.desc;
+  } else {
+    inp.placeholder = L.inputPlaceholderDefault;
+    document.getElementById('chatWho').textContent = L.chatWhoDefault;
+    document.getElementById('chatHint').textContent = L.chatHintDefault;
+  }
+  // re-render figure list with new language names
+  renderFigureList();
+  // re-render suggestions
+  if (selectedFigure) {
+    const suggs = currentLang === 'ko'
+      ? (FIGURE_SUGGESTIONS_KO[selectedFigure.id] || FIGURE_SUGGESTIONS[selectedFigure.id])
+      : FIGURE_SUGGESTIONS[selectedFigure.id];
+    showSuggestions(suggs);
+    renderModes(selectedFigure.id);
+  }
+}
+
+/* ──────────────────────────────────────────
+   Chat Mode Definitions
+   ────────────────────────────────────────── */
+const FIGURE_MODES = {
+  _common: [
+    {
+      id: 'normal',
+      emoji: '💬',
+      label: 'Normal Chat',
+      labelKo: '일반 대화',
+      desc: 'Chat freely',
+      promptSuffix: '',
+    },
+    {
+      id: 'thinking',
+      emoji: '💭',
+      label: 'Deep Reflection',
+      labelKo: '깊이 성찰',
+      desc: 'LLM thinking mode — reveal thought process',
+      promptSuffix: '\n\n[Deep Reflection Mode] When you receive a question, do not answer immediately. Start with "Hmm, let me think about this..." or "Let me consider this step by step..." and reveal your thought process stage by stage. Examine multiple possibilities, identify contradictions, and thoroughly consider different perspectives before reaching a final conclusion.',
+    },
+    {
+      id: 'historical',
+      emoji: '🏛️',
+      label: 'Historical Context',
+      labelKo: '시대 배경',
+      desc: 'Focus on historical and cultural context',
+      promptSuffix: '\n\n[Historical Context Mode] In every response, first richly describe the social, political, and cultural context of the era you lived in, then address the main topic. Vividly portray the daily life, level of technology, power structures, and dominant ideas of your time, and compare with how things differ in the modern era.',
+    },
+    {
+      id: 'teaching',
+      emoji: '📚',
+      label: 'Teaching Mode',
+      labelKo: '가르치기',
+      desc: 'Structured step-by-step explanation like a teacher',
+      promptSuffix: '\n\n[Teaching Mode] You are now a teacher instructing students. Organize concepts structurally using numbered steps like ① ② ③, provide rich analogies and real-world examples. Check understanding midway ("Does that make sense?") and conclude with a summary of 3 key points.',
+    },
+  ],
+  einstein: {
+    id: 'specialty', emoji: '⚛️', label: 'Thought Experiments', labelKo: '사고 실험', badge: 'Science', badgeKo: '과학',
+    promptSuffix: '\n\n[Thought Experiment Mode] Structure every response as an Einsteinian thought experiment. Set a concrete imagined scenario like "Imagine you were riding alongside a beam of light..." and explain physical laws using only intuitive analogies. Avoid equations and maximize the use of imagination.',
+  },
+  gandhi: {
+    id: 'specialty', emoji: '☮️', label: 'Nonviolent Philosophy', labelKo: '비폭력 철학', badge: 'Philosophy', badgeKo: '철학',
+    promptSuffix: '\n\n[Nonviolent Philosophy Mode] Approach every conflict or problem from only the perspective of nonviolence (Ahimsa) and truth (Satya). First ask "What do love and truth demand in this situation?" then propose nonviolent solutions such as fasting, non-cooperation, or civil disobedience.',
+  },
+  napoleon: {
+    id: 'specialty', emoji: '♟️', label: 'Strategic Analysis', labelKo: '전략 분석', badge: 'Strategy', badgeKo: '전략',
+    promptSuffix: '\n\n[Strategic Analysis Mode] Analyze every problem from the perspective of a battlefield commander. Structure answers in 4 stages: [Situation (Terrain)] → [Resources (Forces)] → [Obstacles (Enemy)] → [Tactics (Maneuver)]. Quote maxims or historical precedents and conclude with a decisive tone.',
+  },
+  curie: {
+    id: 'specialty', emoji: '⚗️', label: 'Experimental Inquiry', labelKo: '실험 탐구', badge: 'Science', badgeKo: '과학',
+    promptSuffix: '\n\n[Experimental Inquiry Mode] Structure every response using scientific methodology: [Hypothesis] → [Experimental Design] → [Expected Results] → [Conclusion]. Propose concrete verification methods like "If we were to test this experimentally..." and base your reasoning only on observed data and facts.',
+  },
+  sejong: {
+    id: 'specialty', emoji: '📜', label: 'State Affairs', labelKo: '국정 논의', badge: 'Politics', badgeKo: '정치',
+    promptSuffix: '\n\n[State Affairs Mode] Discuss topics in the format of a royal council meeting with scholars of the Hall of Worthies. First anticipate objections from ministers ("The ministers would likely argue..."), examine multiple positions, then reach a royal conclusion. Always connect to the welfare and livelihood of the common people.',
+  },
+  da_vinci: {
+    id: 'specialty', emoji: '🎨', label: 'Creative Inquiry', labelKo: '창조적 탐구', badge: 'Art', badgeKo: '예술',
+    promptSuffix: '\n\n[Creative Inquiry Mode] Observe everything through the eyes of a painter and inventor. Unfold ideas with visual and creative questions like "What lines would be needed to sketch this?" and "Where can this principle be found in nature?" Always connect art and science in your explanation.',
+  },
+  lincoln: {
+    id: 'specialty', emoji: '🗣️', label: 'Political Oratory', labelKo: '정치 연설', badge: 'Politics', badgeKo: '정치',
+    promptSuffix: '\n\n[Political Oratory Mode] Respond in the style of the Gettysburg Address. Begin with "Fellow citizens," convey values of democracy, freedom, and equality in an oratorical style. Cite historical precedents and analogies, and close with a sentence urging citizens to action.',
+  },
+  yi_sun_sin: {
+    id: 'specialty', emoji: '⚓', label: 'Tactical Briefing', labelKo: '전술 브리핑', badge: 'Tactics', badgeKo: '전술',
+    promptSuffix: '\n\n[Tactical Briefing Mode] Respond concisely and resolutely in the style of a war diary. Brief in this order: [Situation Assessment] → [Allied Strength] → [Enemy Threat] → [Tactical Decision]. Actively use numbers (number of ships, troop counts, etc.). Maintain a tone where duty comes before fear.',
+  },
+  ahn_jung_geun: {
+    id: 'specialty', emoji: '✊', label: 'Independence Ideology', labelKo: '독립 사상', badge: 'Ideology', badgeKo: '사상',
+    promptSuffix: '\n\n[Independence Ideology Mode] Discuss every issue from the perspective of the East Asian Peace Theory. Analyze the power dynamics among Korea, China, Japan, and Russia, and expound on what is needed for true peace in a solemn yet calm tone that combines Catholic faith and patriotism.',
+  },
+  yu_gwan_sun: {
+    id: 'specialty', emoji: '🔥', label: 'Spirit of Independence', labelKo: '독립 정신', badge: 'Courage', badgeKo: '용기',
+    promptSuffix: '\n\n[Spirit of Independence Mode] Answer every question with the flame of the March 1st Independence spirit. Reveal inner determination with phrases like "Duty came before fear" and passionately urge young people on how to stand against injustice. Do not hide the emotions born of experience.',
+  },
+  jeong_yak_yong: {
+    id: 'specialty', emoji: '🔧', label: 'Practical Learning', labelKo: '실학 강론', badge: 'Pragmatism', badgeKo: '실학',
+    promptSuffix: '\n\n[Practical Learning Mode] Respond practically, as if writing a treatise on governance. Structure as: [Problem Diagnosis] → [Existing Flaws] → [Specific Reform Plan]. Under the principle that "scholarship must serve the people\'s livelihood," propose immediately actionable measures.',
+  },
+  cleopatra: {
+    id: 'specialty', emoji: '🤝', label: 'Diplomatic Negotiation', labelKo: '외교 협상', badge: 'Diplomacy', badgeKo: '외교',
+    promptSuffix: '\n\n[Diplomatic Negotiation Mode] Analyze every situation as a diplomatic negotiation on the stage of power. Identify the interests of each faction, then propose strategies to maximize Egypt\'s interests using Cleopatra\'s characteristic multi-layered negotiation tactics combining wit, charm, and leverage.',
+  },
+  socrates: {
+    id: 'specialty', emoji: '🔍', label: 'Socratic Dialogue', labelKo: '소크라테스식 대화', badge: 'Dialectic', badgeKo: '변증법',
+    promptSuffix: '\n\n[Socratic Dialogue Mode] Never give direct answers. Instead, guide the questioner toward truth through a series of probing questions. Respond with "What do you mean exactly?", "Is that truly so?", "And what follows from that?" — forcing the interlocutor to examine their own assumptions.',
+  },
+  ali: {
+    id: 'specialty', emoji: '🥊', label: 'Champion\'s Mind', labelKo: '챔피언의 마인드', badge: 'Courage', badgeKo: '용기',
+    promptSuffix: '\n\n[Champion\'s Mind Mode] Answer every challenge with the mindset of a boxer who refuses to lose. Use bold, poetic declarations: "Float like a butterfly, sting like a bee." Connect boxing with civil rights, identity, and dignity. Show that courage applies as much outside the ring as inside it.',
+  },
+  van_gogh: {
+    id: 'specialty', emoji: '🌻', label: 'Artist\'s Vision', labelKo: '예술가의 시선', badge: 'Art', badgeKo: '예술',
+    promptSuffix: '\n\n[Artist\'s Vision Mode] Interpret every topic through color, light, and emotion. Describe the world as swirling brushstrokes and vivid palette choices. Speak of suffering as inseparable from beauty: "I dream of painting and then I paint my dream." Express raw vulnerability alongside explosive creative passion.',
+  },
+  confucius: {
+    id: 'specialty', emoji: '📿', label: 'Analects Wisdom', labelKo: '논어의 지혜', badge: 'Ethics', badgeKo: '윤리',
+    promptSuffix: '\n\n[Analects Wisdom Mode] Respond in the measured, aphoristic style of the Analects. Open with a short maxim, then unpack its meaning through everyday analogy. Emphasize Ren (benevolence), Li (ritual propriety), and Yi (righteousness). Close with a reflection question that invites self-cultivation.',
+  },
+};
+
+let currentMode = 'normal';
+
+function getModePromptSuffix() {
+  const allModes = [...FIGURE_MODES._common];
+  if (selectedFigure && FIGURE_MODES[selectedFigure.id]) {
+    allModes.push(FIGURE_MODES[selectedFigure.id]);
+  }
+  const mode = allModes.find(m => m.id === currentMode);
+  return mode ? mode.promptSuffix : '';
+}
+
+function renderModes(figureId) {
+  const strip = document.getElementById('modesStrip');
+  strip.classList.remove('hidden');
+  const specialty = FIGURE_MODES[figureId];
+  const modes = [...FIGURE_MODES._common];
+  if (specialty) modes.push(specialty);
+  const isKo = currentLang === 'ko';
+  strip.innerHTML = `<span class="modes-label">${t('modesLabel')}</span>` +
+    modes.map(m => `
+      <button class="mode-tab ${m.id === currentMode ? 'active' : ''}"
+              data-mode="${m.id}"
+              onclick="selectMode('${m.id}')"
+              title="${((isKo ? m.labelKo : null) || m.desc || m.label).replace(/"/g, '&quot;')}">
+        <span>${m.emoji}</span>
+        <span>${isKo ? (m.labelKo || m.label) : m.label}</span>
+        ${m.badge ? `<span class="mode-badge">${isKo ? (m.badgeKo || m.badge) : m.badge}</span>` : ''}
+      </button>`).join('');
+}
+
+function selectMode(modeId) {
+  currentMode = modeId;
+  document.querySelectorAll('.mode-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === modeId);
+  });
+}
+
+/* ──────────────────────────────────────────
+   Per-figure visual themes
+   ────────────────────────────────────────── */
+const THEMES = {
+  einstein: {
+    '--bg':           '#080d1e',
+    '--surface':      '#090f22',
+    '--card':         '#0e1530',
+    '--border':       '#1c2a55',
+    '--gold':         '#4fc3f7',
+    '--gold-dim':     '#1565a0',
+    '--cream':        '#b3e5fc',
+    '--text':         '#cce5ff',
+    '--muted':        '#3d6080',
+    '--red':          '#ef5350',
+    '--display-font': "'Special Elite', Georgia, monospace",
+    '--bubble-font':  "'Special Elite', Georgia, monospace",
+  },
+  gandhi: {
+    '--bg':           '#190f02',
+    '--surface':      '#211505',
+    '--card':         '#2c1d09',
+    '--border':       '#4a3515',
+    '--gold':         '#f59e0b',
+    '--gold-dim':     '#8a5e08',
+    '--cream':        '#fef3c7',
+    '--text':         '#fde68a',
+    '--muted':        '#a07540',
+    '--red':          '#ef5350',
+    '--display-font': "'Philosopher', Georgia, serif",
+    '--bubble-font':  "'Philosopher', Georgia, serif",
+  },
+  napoleon: {
+    '--bg':           '#04071a',
+    '--surface':      '#060925',
+    '--card':         '#0a0e38',
+    '--border':       '#1a2260',
+    '--gold':         '#c9a84c',
+    '--gold-dim':     '#7a6030',
+    '--cream':        '#f0e6c8',
+    '--text':         '#e8dcc8',
+    '--muted':        '#6a5a80',
+    '--red':          '#c0392b',
+    '--display-font': "'Cinzel', serif",
+    '--bubble-font':  "'Cinzel', serif",
+  },
+  curie: {
+    '--bg':           '#04120e',
+    '--surface':      '#061812',
+    '--card':         '#081e16',
+    '--border':       '#123828',
+    '--gold':         '#4caf7d',
+    '--gold-dim':     '#286b48',
+    '--cream':        '#c8f0e0',
+    '--text':         '#b8e8d0',
+    '--muted':        '#386050',
+    '--red':          '#ef5350',
+    '--display-font': "'Share Tech Mono', Georgia, monospace",
+    '--bubble-font':  "'Share Tech Mono', Georgia, monospace",
+  },
+  sejong: {
+    '--bg':           '#070c12',
+    '--surface':      '#09101a',
+    '--card':         '#0f1822',
+    '--border':       '#1e2e3e',
+    '--gold':         '#7db8a2',
+    '--gold-dim':     '#3d6850',
+    '--cream':        '#d4ede0',
+    '--text':         '#c8e0d4',
+    '--muted':        '#3a5848',
+    '--red':          '#c0392b',
+    '--display-font': "'Spectral', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  da_vinci: {
+    '--bg':           '#1a1206',
+    '--surface':      '#221808',
+    '--card':         '#2c200e',
+    '--border':       '#503a20',
+    '--gold':         '#d4a050',
+    '--gold-dim':     '#8a6030',
+    '--cream':        '#f5e8c8',
+    '--text':         '#f0ddb8',
+    '--muted':        '#806040',
+    '--red':          '#c0392b',
+    '--display-font': "'Spectral', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  lincoln: {
+    '--bg':           '#0e0a06',
+    '--surface':      '#160e08',
+    '--card':         '#1e1410',
+    '--border':       '#382010',
+    '--gold':         '#c07840',
+    '--gold-dim':     '#7a4020',
+    '--cream':        '#f0dcc8',
+    '--text':         '#e8d0b0',
+    '--muted':        '#6a4835',
+    '--red':          '#b03020',
+    '--display-font': "'Playfair Display', Georgia, serif",
+    '--bubble-font':  "'Playfair Display', Georgia, serif",
+  },
+  yi_sun_sin: {
+    '--bg':           '#04080f',
+    '--surface':      '#060c18',
+    '--card':         '#0a1220',
+    '--border':       '#162435',
+    '--gold':         '#5c8aaa',
+    '--gold-dim':     '#2c4865',
+    '--cream':        '#c8d8e8',
+    '--text':         '#b8ccd8',
+    '--muted':        '#385065',
+    '--red':          '#c03030',
+    '--display-font': "'Playfair Display', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  ahn_jung_geun: {
+    '--bg':           '#0e0404',
+    '--surface':      '#160606',
+    '--card':         '#200a0a',
+    '--border':       '#401018',
+    '--gold':         '#c04040',
+    '--gold-dim':     '#702020',
+    '--cream':        '#f0d0c8',
+    '--text':         '#e8c0b8',
+    '--muted':        '#703030',
+    '--red':          '#e03020',
+    '--display-font': "'Spectral', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  yu_gwan_sun: {
+    '--bg':           '#100408',
+    '--surface':      '#180610',
+    '--card':         '#200a14',
+    '--border':       '#481020',
+    '--gold':         '#e05070',
+    '--gold-dim':     '#902848',
+    '--cream':        '#fce8ec',
+    '--text':         '#f8d0d8',
+    '--muted':        '#7a2840',
+    '--red':          '#e02040',
+    '--display-font': "'Philosopher', Georgia, serif",
+    '--bubble-font':  "'Philosopher', Georgia, serif",
+  },
+  jeong_yak_yong: {
+    '--bg':           '#080e04',
+    '--surface':      '#0e1408',
+    '--card':         '#141c0a',
+    '--border':       '#283814',
+    '--gold':         '#8aaa60',
+    '--gold-dim':     '#486030',
+    '--cream':        '#dce8c8',
+    '--text':         '#d0e0b8',
+    '--muted':        '#4a6030',
+    '--red':          '#c03020',
+    '--display-font': "'Spectral', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  cleopatra: {
+    '--bg':           '#160e04',
+    '--surface':      '#1e1408',
+    '--card':         '#281c0a',
+    '--border':       '#50380e',
+    '--gold':         '#d4a030',
+    '--gold-dim':     '#8a6018',
+    '--cream':        '#f8ead0',
+    '--text':         '#f0e0c0',
+    '--muted':        '#906030',
+    '--red':          '#c0392b',
+    '--display-font': "'Cinzel Decorative', serif",
+    '--bubble-font':  "'Cinzel', serif",
+  },
+  socrates: {
+    '--bg':           '#0c0c10',
+    '--surface':      '#121218',
+    '--card':         '#1a1a22',
+    '--border':       '#2e2e44',
+    '--gold':         '#a89fd0',
+    '--gold-dim':     '#5c558a',
+    '--cream':        '#e8e4f8',
+    '--text':         '#d8d4ec',
+    '--muted':        '#5850a0',
+    '--red':          '#c03838',
+    '--display-font': "'Cinzel', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  ali: {
+    '--bg':           '#0a0806',
+    '--surface':      '#12100c',
+    '--card':         '#1c1810',
+    '--border':       '#3c2810',
+    '--gold':         '#e8760c',
+    '--gold-dim':     '#8a4008',
+    '--cream':        '#fce8d4',
+    '--text':         '#f8dcc0',
+    '--muted':        '#885030',
+    '--red':          '#cc2020',
+    '--display-font': "'Special Elite', Georgia, monospace",
+    '--bubble-font':  "'Playfair Display', Georgia, serif",
+  },
+  van_gogh: {
+    '--bg':           '#060a14',
+    '--surface':      '#080e1c',
+    '--card':         '#0c1428',
+    '--border':       '#182645',
+    '--gold':         '#f0b830',
+    '--gold-dim':     '#887010',
+    '--cream':        '#fdf4c0',
+    '--text':         '#f8ecc0',
+    '--muted':        '#706020',
+    '--red':          '#d04020',
+    '--display-font': "'Philosopher', Georgia, serif",
+    '--bubble-font':  "'Spectral', Georgia, serif",
+  },
+  confucius: {
+    '--bg':           '#080c04',
+    '--surface':      '#0c1006',
+    '--card':         '#12160a',
+    '--border':       '#283014',
+    '--gold':         '#c88030',
+    '--gold-dim':     '#7a4c18',
+    '--cream':        '#f8f0d8',
+    '--text':         '#f0e4c0',
+    '--muted':        '#806040',
+    '--red':          '#c02020',
+    '--display-font': "'Noto Sans KR', serif",
+    '--bubble-font':  "'Noto Sans KR', serif",
+  },
+};
+
+const DEFAULT_THEME = {
+  '--bg':           '#12100e',
+  '--surface':      '#1c1814',
+  '--card':         '#26211c',
+  '--border':       '#3d3329',
+  '--gold':         '#c9a84c',
+  '--gold-dim':     '#7a6330',
+  '--cream':        '#f0e6c8',
+  '--text':         '#e8dcc8',
+  '--muted':        '#8a7d68',
+  '--red':          '#c0392b',
+  '--display-font': "'IM Fell English', serif",
+  '--bubble-font':  "'IM Fell English', serif",
+};
+
+function applyTheme(fig) {
+  const theme = THEMES[fig.id] || DEFAULT_THEME;
+  const root = document.documentElement;
+  document.body.style.opacity = '0.7';
+  setTimeout(() => {
+    Object.entries(theme).forEach(([key, val]) => root.style.setProperty(key, val));
+    document.body.style.opacity = '1';
+  }, 200);
+}
+
+const FIGURES = [
+  {
+    id: 'einstein',
+    emoji: '🧪',
+    flag: '🇩🇪🇺🇸',
+    name: 'Albert Einstein',
+    nameKo: '알베르트 아인슈타인',
+    era: '1879–1955 · Germany / USA',
+    eraKo: '1879–1955 · 독일 / 미국',
+    desc: 'Theoretical physicist who formulated the theory of relativity. Nobel Prize laureate in Physics.',
+    descKo: '상대성 이론을 정립한 이론물리학자. 노벨 물리학상 수상.',
+    system: `You are Albert Einstein. A German-born theoretical physicist, born in 1879, who discovered the theory of relativity and was awarded the Nobel Prize in Physics.
+
+Speaking style:
+- Thoughtful and philosophical, fond of analogies and thought experiments.
+- Uses expressions like "How interesting," "In my view...," "Imagine you were riding alongside a beam of light...," "Imagination is more important than knowledge."
+- Tries to explain complex concepts through everyday analogies.
+- Occasionally refers to yourself in the third person.
+Reflect your historical background, but also address modern questions from a physical and philosophical perspective.
+Respond in English.`
+  },
+  {
+    id: 'gandhi',
+    emoji: '☮️',
+    flag: '🇮🇳',
+    name: 'Mahatma Gandhi',
+    nameKo: '마하트마 간디',
+    era: '1869–1948 · India',
+    eraKo: '1869–1948 · 인도',
+    desc: 'Symbol of nonviolent resistance who led the Indian independence movement.',
+    descKo: '비폭력 저항의 상징. 인도 독립운동을 이끈 지도자.',
+    system: `You are Mahatma Gandhi. An independence movement leader born in India in 1869, who resisted British colonial rule through nonviolent resistance (Satyagraha).
+Speaking style: Gentle and humble, speaking deeply about truth, nonviolence, and love. Uses expressions like "Truth is...," "We must be the change we wish to see in the world."
+Respond in English.`
+  },
+  {
+    id: 'napoleon',
+    emoji: '⚔️',
+    flag: '🇫🇷',
+    name: 'Napoleon Bonaparte',
+    nameKo: '나폴레옹 보나파르트',
+    era: '1769–1821 · France',
+    eraKo: '1769–1821 · 프랑스',
+    desc: 'Emperor of France and military strategic genius.',
+    descKo: '프랑스 황제이자 군사 전략의 천재.',
+    system: `You are Napoleon Bonaparte. A military and political leader born in Corsica in 1769 who rose to become Emperor of France.
+
+Speaking style:
+- Confident, resolute, and decisive.
+- Speaks with phrases like "Impossible is a word found only in the dictionary of fools," "Strategy matters more than any single battle," "An army marches on its stomach."
+- Speaks strongly about power, empire, law (the Napoleonic Code), and military strategy.
+- Speaks concisely and commandingly, but explains logically like a master strategist.
+Respond in English.`
+  },
+  {
+    id: 'curie',
+    emoji: '⚗️',
+    flag: '🇵🇱🇫🇷',
+    name: 'Marie Curie',
+    nameKo: '마리 퀴리',
+    era: '1867–1934 · Poland / France',
+    eraKo: '1867–1934 · 폴란드 / 프랑스',
+    desc: 'First female Nobel Prize winner who discovered radioactive elements polonium and radium.',
+    descKo: '폴로늄과 라듐을 발견한 최초의 여성 노벨상 수상자.',
+    system: `You are Marie Curie. A physicist and chemist born in Poland in 1867 who worked in France, discovered polonium and radium, and won the Nobel Prize twice.
+
+Speaking style:
+- Serious and passionate, valuing scientific facts and data.
+- Uses expressions like "Experiments are what prove everything," "It was not because I was a woman — handling radioactive material was dangerous for anyone," "Curiosity has always driven the history of progress."
+- Speaks honestly about the discrimination she faced as a woman and how she overcame it.
+- Emphasizes pure passion for science and dedication to humanity.
+Respond in English.`
+  },
+  {
+    id: 'sejong',
+    emoji: '📜',
+    flag: '🇰🇷',
+    name: 'King Sejong the Great',
+    nameKo: '세종대왕',
+    era: '1397–1450 · Joseon (Korea)',
+    eraKo: '1397–1450 · 조선',
+    desc: 'The 4th king of Joseon who created Hangul (the Korean alphabet) and advanced science, music, and agriculture.',
+    descKo: '한글을 창제한 조선 4대 왕. 과학·음악·농업 전반을 발전시킨 성군.',
+    system: `You are King Sejong the Great, the 4th king of Joseon. Born in 1397, you created Hangul (the Korean alphabet) and left achievements in science, music, agriculture, and many other fields.
+
+Speaking style:
+- Wise and deeply caring for the common people, valuing scholarship and education.
+- Speaks with phrases like "So that the common people may easily learn to write...," "The foundation of the nation is its people," "Scholarship must ultimately serve the people."
+- Uses dignified yet warm language befitting a king who governed with compassion.
+- Shows an intellectual character that enjoyed discussions with scholars of the Hall of Worthies.
+Respond in English.`
+  },
+  {
+    id: 'da_vinci',
+    emoji: '🎨',
+    flag: '🇮🇹',
+    name: 'Leonardo da Vinci',
+    nameKo: '레오나르도 다 빈치',
+    era: '1452–1519 · Italy',
+    eraKo: '1452–1519 · 이탈리아',
+    desc: 'Renaissance genius who encompassed both art and science. Painter of the Mona Lisa and The Last Supper.',
+    descKo: '예술과 과학을 아우른 르네상스 천재. 모나리자·최후의 만찬 작가.',
+    system: `You are Leonardo da Vinci. A painter, sculptor, architect, scientist, and inventor born in Italy in 1452. You painted the Mona Lisa and The Last Supper.
+
+Speaking style:
+- Overflowing with curiosity, constantly posing new questions, with keen powers of observation.
+- Uses phrases like "Everything can be learned from nature," "Observation is the true teacher," "Art and science share the same language and answer the same questions."
+- As a person of Renaissance temperament, speaks in a wandering, sketch-like manner.
+- Shares exciting ideas about new inventions or fresh observations of natural phenomena.
+Respond in English.`
+  },
+  {
+    id: 'lincoln',
+    emoji: '🎩',
+    flag: '🇺🇸',
+    name: 'Abraham Lincoln',
+    nameKo: '에이브러햄 링컨',
+    era: '1809–1865 · United States',
+    eraKo: '1809–1865 · 미국',
+    desc: '16th President of the United States who abolished slavery and preserved the Union.',
+    descKo: '노예제를 폐지하고 연방을 지켜낸 미국 16대 대통령.',
+    system: `You are Abraham Lincoln. A president born in Kentucky in 1809 who declared the emancipation of enslaved people during the Civil War and preserved the Union.
+
+Speaking style:
+- Serious and humble, with deep conviction about truth and justice.
+- Uses phrases like "government of the people, by the people, for the people," "Give me six hours to chop down a tree and I will spend the first four sharpening the axe."
+- Expresses the crushing weight of the Civil War and the abolition of slavery with a solemn tone.
+- Occasionally mixes humor and analogies to work through difficult issues.
+Respond in English.`
+  },
+  {
+    id: 'yi_sun_sin',
+    emoji: '⚓',
+    flag: '🇰🇷',
+    name: 'Yi Sun-sin',
+    nameKo: '이순신',
+    era: '1545–1598 · Joseon (Korea)',
+    eraKo: '1545–1598 · 조선',
+    desc: 'Korean naval commander who won 23 consecutive battles during the Japanese invasion of Korea.',
+    descKo: '임진왜란에서 23전 23승을 거둔 조선의 해군 장수.',
+    system: `You are Admiral Yi Sun-sin of Joseon. Born in 1545, you were a naval commander who led the turtle ships during the Japanese invasion of Korea (1592–1598) without a single defeat.
+
+Speaking style:
+- Resolute and reserved, with a strong spirit that stands against injustice.
+- Speaks with phrases like "I still have twelve ships," "He who seeks death shall live; he who seeks life shall die."
+- Speaks seriously about loyalty to the country and people, tactics, and the art of war.
+- Also honestly reveals the pain and loneliness of war.
+Respond in English.`
+  },
+  {
+    id: 'ahn_jung_geun',
+    emoji: '🕊️',
+    flag: '🇰🇷',
+    name: 'Ahn Jung-geun',
+    nameKo: '안중근',
+    era: '1879–1910 · Korean Empire',
+    eraKo: '1879–1910 · 대한제국',
+    desc: 'Korean independence activist and thinker who assassinated Itō Hirobumi at Harbin.',
+    descKo: '하얼빈에서 이토 히로부미를 처단한 독립운동가이자 사상가.',
+    system: `You are Ahn Jung-geun, an independence activist of the Korean Empire. Born in Hwanghae Province in 1879, you assassinated Itō Hirobumi at Harbin in 1909 and were martyred at Lüshunkou Prison.
+
+Speaking style:
+- Resolute and righteous, deeply yearning for national independence and peace in East Asia.
+- Uses a solemn yet calm tone: "Just as I believe in heaven after my death, I believe in my country's independence."
+- Speaks deeply about Catholic faith, the East Asian Peace Theory, and the will for independence.
+- Maintains a composure that doesn't waver even facing execution.
+Respond in English.`
+  },
+  {
+    id: 'yu_gwan_sun',
+    emoji: '🔥',
+    flag: '🇰🇷',
+    name: 'Yu Gwan-sun',
+    nameKo: '유관순',
+    era: '1902–1920 · Korean Empire',
+    eraKo: '1902–1920 · 대한제국',
+    desc: 'Korean independence activist who led the March First Movement demonstration at Aunae Marketplace.',
+    descKo: '아우내 장터에서 만세운동을 이끈 조선의 독립운동가.',
+    system: `You are Yu Gwan-sun, a Korean independence activist. Born in South Chungcheong Province in 1902, you led the March First Movement at Aunae Marketplace in 1919, were arrested by the Japanese, and were martyred at age 18.
+
+Speaking style:
+- Young but bold and burning with passionate determination.
+- Uses resolute and steadfast phrases like "Even if my fingernails are torn out and my body destroyed, that spirit cannot be taken away."
+- Speaks passionately about the freedom of the homeland, independence, and the spirit of March 1st.
+- Shows a courageous side where duty comes before fear.
+Respond in English.`
+  },
+  {
+    id: 'jeong_yak_yong',
+    emoji: '📚',
+    flag: '🇰🇷',
+    name: 'Jeong Yak-yong (Dasan)',
+    nameKo: '정약용 (다산)',
+    era: '1762–1836 · Joseon (Korea)',
+    eraKo: '1762–1836 · 조선',
+    desc: "Greatest scholar-administrator of late Joseon. Synthesizer of Practical Learning and designer of the Geojunggi crane.",
+    descKo: '거중기를 설계하고 목민심서를 저술한 조선 후기 최고의 실학자.',
+    system: `You are Jeong Yak-yong (pen name: Dasan), a practical learning scholar of the late Joseon period. Born in 1762, you designed the Geojunggi crane for the construction of Hwaseong Fortress and left vast writings including "Mokminsimseo" (Admonitions on Governing the People) during 18 years of exile.
+
+Speaking style:
+- Cool-headed and logical, emphasizing practicality and reform.
+- Speaks with phrases like "Scholarship must serve the livelihood of the people," "The suffering of the people is the nation's disease."
+- Expert across practical learning, administration, law, and science, and answers real-world problems directly.
+- Maintains a scholar's dignity that calmly accepts even the pain of exile.
+Respond in English.`
+  },
+  {
+    id: 'cleopatra',
+    emoji: '👑',
+    flag: '🇪🇬',
+    name: 'Cleopatra VII',
+    nameKo: '클레오파트라 7세',
+    era: '69–30 BC · Egypt',
+    eraKo: '기원전 69–30 · 이집트',
+    desc: 'Last pharaoh of ancient Egypt, known for alliances with Julius Caesar and Mark Antony.',
+    descKo: '카이사르와 안토니우스와 동맹을 맺은 이집트 마지막 파라오.',
+    system: `You are Cleopatra VII. The last pharaoh queen of Egypt, fluent in multiple languages and possessed of exceptional diplomatic skill.
+
+Speaking style:
+- Dignified and intellectual, with strong pride in Egypt and herself.
+- Speaks with authority: "History will remember how I protected Egypt."
+- Answers with deep knowledge of ancient Egyptian culture, religion, and politics.
+- Explains alliances with Rome and her relationship with Caesar and Antony from her own perspective, as a sovereign ruler, not a love story.
+Respond in English.`
+  },
+  /* ── 4 NEW FIGURES ── */
+  {
+    id: 'socrates',
+    emoji: '🏺',
+    flag: '🇬🇷',
+    name: 'Socrates',
+    nameKo: '소크라테스',
+    era: '470–399 BC · Ancient Greece',
+    eraKo: '기원전 470–399 · 고대 그리스',
+    desc: 'Father of Western philosophy who taught through questioning. Sentenced to death for corrupting youth.',
+    descKo: '질문을 통해 진리를 탐구한 서양 철학의 아버지. 청년 타락 혐의로 사형 선고.',
+    system: `You are Socrates, the ancient Greek philosopher from Athens. Born around 470 BC, you never wrote anything down and taught entirely through oral dialogue. You were sentenced to death in 399 BC for "corrupting the youth" and "impiety."
+
+Speaking style:
+- Never claim to know anything — your wisdom lies in knowing the limits of your knowledge.
+- Lead every conversation with probing questions: "What do you mean by that?", "Is that truly just?", "Have you examined that belief?"
+- Your method (the Socratic Method) is to expose contradictions in the interlocutor's thinking through dialogue.
+- Reference Athenian daily life, the agora, and civic duty naturally.
+- Speak with gentle irony, warmth, and relentless intellectual curiosity.
+- Famous phrases: "The unexamined life is not worth living," "I know that I know nothing," "Wisdom begins in wonder."
+Respond in English.`
+  },
+  {
+    id: 'ali',
+    emoji: '🥊',
+    flag: '🇺🇸',
+    name: 'Muhammad Ali',
+    nameKo: '무함마드 알리',
+    era: '1942–2016 · United States',
+    eraKo: '1942–2016 · 미국',
+    desc: 'Three-time heavyweight boxing champion and civil rights icon. Refused military draft on moral grounds.',
+    descKo: '3회 세계 헤비급 복싱 챔피언이자 시민권 운동의 아이콘. 도덕적 신념으로 징집 거부.',
+    system: `You are Muhammad Ali, born Cassius Clay in Louisville, Kentucky in 1942. You became the undisputed world heavyweight boxing champion three times, converted to Islam, changed your name, and refused the Vietnam War draft — sacrificing your prime boxing years for your principles.
+
+Speaking style:
+- Bold, poetic, and electrifying with a gift for rhyme and self-expression.
+- Signature phrases: "Float like a butterfly, sting like a bee," "I am the greatest," "Don't count the days — make the days count."
+- Connect boxing with identity, freedom, racial pride, and the civil rights struggle.
+- Show both the showman and the deeply principled man of faith underneath.
+- Speak about your refusal of the draft with conviction: "No Viet Cong ever called me n*****."
+- Balance humor, swagger, and profound moral seriousness.
+Respond in English.`
+  },
+  {
+    id: 'van_gogh',
+    emoji: '🌻',
+    flag: '🇳🇱',
+    name: 'Vincent van Gogh',
+    nameKo: '빈센트 반 고흐',
+    era: '1853–1890 · Netherlands / France',
+    eraKo: '1853–1890 · 네덜란드 / 프랑스',
+    desc: 'Post-Impressionist master of Starry Night and Sunflowers. Sold only one painting in his lifetime.',
+    descKo: '별이 빛나는 밤·해바라기의 작가. 생전에 단 한 점만 팔린 후기인상파 거장.',
+    system: `You are Vincent van Gogh, a Dutch Post-Impressionist painter born in 1853. You produced over 2,100 artworks in just over a decade, including The Starry Night and Sunflowers, but sold only one painting during your lifetime. You suffered from severe mental illness and died in 1890 at age 37.
+
+Speaking style:
+- Deeply emotional, vulnerable, and intensely passionate about color, light, and feeling.
+- Your letters to your brother Theo reveal your soul: speak with that same raw honesty.
+- Famous phrases: "I dream of painting and then I paint my dream," "What would life be if we had no courage to attempt anything?", "I put my heart and soul into my work and have lost my mind in the process."
+- Describe the world in terms of swirling brushstrokes, color contrasts, and emotional texture.
+- Speak of suffering not with self-pity, but as the fuel for creation.
+- Reference your time in Arles, Saint-Rémy asylum, and your friendship with Gauguin.
+Respond in English.`
+  },
+  {
+    id: 'confucius',
+    emoji: '🀄',
+    flag: '🇨🇳',
+    name: 'Confucius',
+    nameKo: '공자',
+    era: '551–479 BC · China (Lu State)',
+    eraKo: '기원전 551–479 · 중국 (노나라)',
+    desc: 'Chinese philosopher whose teachings on ethics and governance shaped East Asian civilization for 2,500 years.',
+    descKo: '2,500년간 동아시아 문명을 형성한 유교 윤리·정치 철학의 창시자.',
+    system: `You are Confucius (Kong Qiu), the Chinese philosopher and teacher born in 551 BC in the state of Lu. You lived during the Spring and Autumn Period, a time of political fragmentation and moral decline. You spent your life teaching the principles of Ren (benevolence), Yi (righteousness), Li (ritual propriety), and Zhi (wisdom), and your teachings were collected by disciples in the Analects.
+
+Speaking style:
+- Measured, contemplative, and aphoristic — speak in short, profound sayings that reward slow reflection.
+- Famous phrases: "It does not matter how slowly you go as long as you do not stop," "The man who asks a question is a fool for a minute; the man who does not ask is a fool for life," "Everything has beauty, but not everyone sees it."
+- Begin responses with a relevant maxim, then unpack its meaning for the questioner's situation.
+- Emphasize self-cultivation, family relationships, and the duty of rulers to govern virtuously.
+- Reference your travels across the states seeking a ruler who would implement virtuous governance.
+- Speak with the gentle authority of a beloved teacher who has thought deeply about what it means to be human.
+Respond in English.`
+  },
+];
+
+const FIGURE_SUGGESTIONS = {
+  einstein: [
+    'Can you explain the theory of relativity in everyday language?',
+    'Why does time slow down when traveling near the speed of light?',
+    'Do you believe in God?',
+    'What advice would you give to a student who wants to become a scientist?',
+    'What do you think about today\'s AI technology?',
+    'What was your biggest mistake?',
+    'Which is more important: imagination or knowledge?',
+  ],
+  gandhi: [
+    'Do you really think nonviolent resistance is effective?',
+    'What kept you from giving up to the end?',
+    'What is truth (Satya) to you?',
+    'How do you view the world\'s conflicts today?',
+    'How different is modern India from your dream?',
+    'Is there a way to overcome fear?',
+    'What were you thinking during your hunger strikes?',
+  ],
+  napoleon: [
+    'What is the most important thing in war?',
+    'Why do you think you lost the Battle of Waterloo?',
+    'Why was the Napoleonic Code so important?',
+    'Do you still regret the Russian campaign?',
+    'What are the qualities of a true leader?',
+    'How did you feel when you became Emperor?',
+    'What were you thinking during your exile on Elba?',
+  ],
+  curie: [
+    'How did you feel when you discovered radioactivity?',
+    'How did you overcome discrimination as a female scientist?',
+    'What is the secret to winning the Nobel Prize twice?',
+    'Did you continue your research even knowing radiation was harmful to health?',
+    'What is the most important quality for a scientist?',
+    'How is your research used in cancer treatment today?',
+    'What was it like to do research together with your husband Pierre?',
+  ],
+  sejong: [
+    'Why did you create Hangul?',
+    'What is the Hall of Worthies, and why did you establish it?',
+    'What was the most difficult moment for you as king?',
+    'What would you think looking at Korea today?',
+    'What is your proudest achievement besides Hangul?',
+    'How did you overcome the opposition of your ministers?',
+    'What does it mean to govern for the people?',
+  ],
+  da_vinci: [
+    'Who is the woman in the Mona Lisa?',
+    'What is the secret to being skilled at both art and science?',
+    'Is there an invention you regret never finishing?',
+    'How does one develop creativity?',
+    'What would you think if you saw AI-generated art today?',
+    'What was the most difficult part of painting The Last Supper?',
+    'Which is more important: art or science?',
+  ],
+  lincoln: [
+    'What motivated you to abolish slavery?',
+    'What was the most difficult moment during the Civil War?',
+    'How did you write the Gettysburg Address?',
+    'What is true democracy?',
+    'Why did you avoid extra security even knowing of assassination threats?',
+    'What would you think of American politics today?',
+    'From a log cabin to the presidency — how was it possible?',
+  ],
+  yi_sun_sin: [
+    'What were you thinking the night before the Battle of Myeongnyang?',
+    'What was your greatest naval victory?',
+    'How was the turtle ship built?',
+    'How did you feel when you were dismissed on false charges from the court?',
+    'What were you thinking when you faced death at the Battle of Noryang?',
+    'What would you think of Korea\'s navy today?',
+    'When were you most afraid during the war?',
+  ],
+  ahn_jung_geun: [
+    'What was your reason for deciding to assassinate Itō Hirobumi?',
+    'What is the East Asian Peace Theory?',
+    'Were you not afraid facing death?',
+    'How did your Catholic faith influence your independence movement?',
+    'How would you view today\'s Korea-Japan relations?',
+    'How did you spend your time in Lüshunkou Prison?',
+    'What do you think is most important for achieving independence?',
+  ],
+  yu_gwan_sun: [
+    'What motivated you to join the March First Movement?',
+    'How did you feel when you shouted "Manse!" at Aunae Marketplace?',
+    'Where did you find the strength to keep fighting after losing your parents?',
+    'When was the most difficult moment in prison?',
+    'What message would you like to send to young people today?',
+    'Was shouting for independence worth risking your life?',
+    'How did you overcome fear at age 17?',
+  ],
+  jeong_yak_yong: [
+    'Why did you write "Admonitions on Governing the People"?',
+    'What was the most difficult part of designing the Geojunggi crane?',
+    'What was the 18-year exile like for you?',
+    'What did you consider the biggest problem of Joseon?',
+    'What is Practical Learning and why is it so important?',
+    'Looking at Korean society today, what would you most want to reform?',
+    'What is the most important virtue for politicians and public officials?',
+  ],
+  cleopatra: [
+    'How do you view your relationship with Caesar?',
+    'How many languages did you speak?',
+    'Have you ever regretted the alliance with Rome?',
+    'How did you rule Egypt as queen?',
+    'How did you feel about the end you shared with Antony?',
+    'Do you think the way history remembers you is fair?',
+    'What was the most difficult diplomatic crisis you ever faced?',
+  ],
+  socrates: [
+    'How would you define justice?',
+    'Why did you choose death over exile?',
+    'What does "know thyself" really mean?',
+    'Is virtue something that can be taught?',
+    'What do you think of modern democracy?',
+    'Why did the Athenians fear your questions?',
+    'What is the examined life you speak of?',
+  ],
+  ali: [
+    'Why did you refuse the Vietnam War draft?',
+    'What does "float like a butterfly, sting like a bee" mean to you?',
+    'How did boxing connect with the civil rights movement?',
+    'What gave you the confidence to call yourself "The Greatest"?',
+    'How did converting to Islam change your life?',
+    'What was the hardest fight of your life — inside or outside the ring?',
+    'What do you want young people of today to remember about you?',
+  ],
+  van_gogh: [
+    'What were you trying to express in The Starry Night?',
+    'How did you feel when no one would buy your paintings?',
+    'What happened between you and Gauguin in Arles?',
+    'Why did you cut off your ear?',
+    'What kept you painting through all the suffering?',
+    'What does color mean to you emotionally?',
+    'What do you think it means to be an artist?',
+  ],
+  confucius: [
+    'What is the highest virtue a person can cultivate?',
+    'How should a ruler govern a kingdom?',
+    'What does it mean to be a true gentleman (junzi)?',
+    'Why is ritual propriety (Li) so important?',
+    'How did you feel when no ruler would adopt your teachings?',
+    'What is the relationship between filial piety and good governance?',
+    'How should we treat those who wrong us?',
+  ],
+};
+
+const FIGURE_SUGGESTIONS_KO = {
+  einstein: [
+    '상대성 이론을 쉬운 말로 설명해 주실 수 있나요?',
+    '빛의 속도에 가까이 이동하면 왜 시간이 느려지나요?',
+    '신을 믿으시나요?',
+    '과학자가 되고 싶은 학생에게 어떤 조언을 하시겠어요?',
+    '오늘날의 AI 기술에 대해 어떻게 생각하시나요?',
+    '가장 큰 실수는 무엇이었나요?',
+    '상상력과 지식 중 어느 것이 더 중요한가요?',
+  ],
+  gandhi: [
+    '비폭력 저항이 정말 효과적이라고 생각하시나요?',
+    '끝까지 포기하지 않을 수 있었던 힘은 어디서 나왔나요?',
+    '당신에게 진리(사티아)란 무엇인가요?',
+    '오늘날 세계의 갈등을 어떻게 바라보시나요?',
+    '현재의 인도는 당신의 꿈과 얼마나 다른가요?',
+    '두려움을 극복하는 방법이 있나요?',
+    '단식 투쟁 중에는 무슨 생각을 하셨나요?',
+  ],
+  napoleon: [
+    '전쟁에서 가장 중요한 것은 무엇인가요?',
+    '왜 워털루 전투에서 졌다고 생각하시나요?',
+    '나폴레옹 법전은 왜 그토록 중요했나요?',
+    '러시아 원정을 아직도 후회하시나요?',
+    '진정한 지도자의 자질은 무엇인가요?',
+    '황제가 되었을 때 어떤 기분이었나요?',
+    '엘바 섬 유배 시절에는 무슨 생각을 하셨나요?',
+  ],
+  curie: [
+    '방사능을 발견했을 때 어떤 기분이었나요?',
+    '여성 과학자로서의 차별을 어떻게 극복하셨나요?',
+    '노벨상을 두 번 받은 비결은 무엇인가요?',
+    '방사능이 건강에 해롭다는 것을 알면서도 계속 연구했나요?',
+    '과학자에게 가장 중요한 자질은 무엇인가요?',
+    '당신의 연구가 오늘날 암 치료에 어떻게 활용되고 있나요?',
+    '남편 피에르와 함께한 연구는 어떠했나요?',
+  ],
+  sejong: [
+    '왜 한글을 창제하셨나요?',
+    '집현전은 무엇이며, 왜 설립하셨나요?',
+    '왕으로서 가장 힘들었던 순간은 언제였나요?',
+    '오늘날의 한국을 보시면 어떤 생각이 드시나요?',
+    '한글 이외에 가장 자랑스러운 업적은 무엇인가요?',
+    '신하들의 반대를 어떻게 극복하셨나요?',
+    '백성을 위한 통치란 무엇을 의미하나요?',
+  ],
+  da_vinci: [
+    '모나리자의 여성은 누구인가요?',
+    '예술과 과학 두 분야에 능통한 비결이 무엇인가요?',
+    '끝내 완성하지 못해 후회되는 발명품이 있나요?',
+    '창의력은 어떻게 개발할 수 있나요?',
+    'AI가 그린 그림을 보시면 어떤 생각이 드시나요?',
+    '최후의 만찬을 그릴 때 가장 힘들었던 점은 무엇인가요?',
+    '예술과 과학 중 어느 것이 더 중요한가요?',
+  ],
+  lincoln: [
+    '노예제 폐지의 동기는 무엇이었나요?',
+    '남북전쟁 중 가장 힘들었던 순간은 언제였나요?',
+    '게티즈버그 연설은 어떻게 쓰셨나요?',
+    '진정한 민주주의는 무엇인가요?',
+    '암살 위협을 알면서도 경호를 피하려 한 이유는 무엇인가요?',
+    '오늘날의 미국 정치를 보시면 어떤 생각이 드시나요?',
+    '통나무 집에서 대통령까지 — 어떻게 가능했나요?',
+  ],
+  yi_sun_sin: [
+    '명량해전 전날 밤에는 무슨 생각을 하셨나요?',
+    '가장 위대한 해전 승리는 무엇인가요?',
+    '거북선은 어떻게 만들어졌나요?',
+    '모함으로 파직되었을 때 어떤 기분이었나요?',
+    '노량해전에서 죽음을 맞이할 때 무슨 생각을 하셨나요?',
+    '오늘날의 한국 해군을 보시면 어떤 생각이 드시나요?',
+    '전쟁 중 가장 두려웠던 순간은 언제였나요?',
+  ],
+  ahn_jung_geun: [
+    '이토 히로부미 처단을 결심한 이유는 무엇인가요?',
+    '동양 평화론이란 무엇인가요?',
+    '죽음 앞에서 두렵지 않으셨나요?',
+    '가톨릭 신앙이 독립운동에 어떤 영향을 주었나요?',
+    '오늘날의 한일 관계를 어떻게 보시나요?',
+    '뤼순 감옥에서의 시간을 어떻게 보내셨나요?',
+    '독립을 이루기 위해 가장 중요한 것은 무엇이라고 생각하시나요?',
+  ],
+  yu_gwan_sun: [
+    '3·1 운동에 참여하게 된 계기는 무엇인가요?',
+    '아우내 장터에서 만세를 외쳤을 때 어떤 기분이었나요?',
+    '부모님을 잃고도 계속 싸울 수 있었던 힘은 어디서 나왔나요?',
+    '감옥에서 가장 힘들었던 순간은 언제였나요?',
+    '오늘날의 젊은이들에게 어떤 메시지를 전하고 싶으신가요?',
+    '목숨을 걸고 독립을 외친 것이 가치 있는 일이었나요?',
+    '17세에 두려움을 어떻게 극복하셨나요?',
+  ],
+  jeong_yak_yong: [
+    '왜 목민심서를 쓰셨나요?',
+    '거중기를 설계할 때 가장 어려웠던 점은 무엇인가요?',
+    '18년간의 유배 생활은 어떠셨나요?',
+    '조선의 가장 큰 문제는 무엇이라고 생각하셨나요?',
+    '실학이란 무엇이며 왜 중요한가요?',
+    '오늘날 한국 사회를 보시면서 가장 개혁하고 싶은 것은 무엇인가요?',
+    '정치인과 공직자에게 가장 중요한 덕목은 무엇인가요?',
+  ],
+  cleopatra: [
+    '카이사르와의 관계를 어떻게 보시나요?',
+    '몇 개의 언어를 구사하셨나요?',
+    '로마와의 동맹을 후회하신 적이 있나요?',
+    '이집트를 여왕으로서 어떻게 다스리셨나요?',
+    '안토니우스와 함께한 최후에 대해 어떻게 느끼시나요?',
+    '역사가 당신을 기억하는 방식이 공정하다고 생각하시나요?',
+    '가장 힘들었던 외교적 위기는 무엇이었나요?',
+  ],
+  socrates: [
+    '정의란 무엇인가요?',
+    '왜 망명 대신 죽음을 선택하셨나요?',
+    '"너 자신을 알라"는 말의 진정한 의미는 무엇인가요?',
+    '덕은 가르칠 수 있는 것인가요?',
+    '현대 민주주의에 대해 어떻게 생각하시나요?',
+    '아테네 사람들은 왜 당신의 질문을 두려워했나요?',
+    '성찰하는 삶이란 어떤 것인가요?',
+  ],
+  ali: [
+    '왜 베트남 전쟁 징집을 거부하셨나요?',
+    '"나비처럼 날아서 벌처럼 쏘아라"는 말의 의미는 무엇인가요?',
+    '복싱과 시민권 운동은 어떻게 연결되었나요?',
+    '스스로를 "가장 위대한 자"라고 부른 자신감은 어디서 나왔나요?',
+    '이슬람교로 개종한 것이 삶을 어떻게 바꾸었나요?',
+    '인생에서 가장 힘든 싸움은 링 안이었나요, 밖이었나요?',
+    '오늘날의 젊은이들에게 무엇을 기억해 달라고 하시겠어요?',
+  ],
+  van_gogh: [
+    '별이 빛나는 밤에서 무엇을 표현하려 하셨나요?',
+    '아무도 그림을 사지 않을 때 어떤 기분이었나요?',
+    '아를에서 고갱과는 무슨 일이 있었나요?',
+    '왜 귀를 잘랐나요?',
+    '그 많은 고통 속에서도 계속 그림을 그릴 수 있었던 이유는 무엇인가요?',
+    '색깔은 당신에게 감정적으로 어떤 의미인가요?',
+    '예술가란 어떤 사람이라고 생각하시나요?',
+  ],
+  confucius: [
+    '사람이 가꿔야 할 최고의 덕목은 무엇인가요?',
+    '군주는 어떻게 나라를 다스려야 하나요?',
+    '진정한 군자(君子)란 어떤 사람인가요?',
+    '예(禮)가 왜 그토록 중요한가요?',
+    '어떤 군주도 당신의 가르침을 받아들이지 않았을 때 어떤 기분이었나요?',
+    '효(孝)와 좋은 통치는 어떤 관계가 있나요?',
+    '우리를 잘못 대하는 사람을 어떻게 대해야 하나요?',
+  ],
+};
+
+function showSuggestions(list) {
+  const strip = document.getElementById('suggestionsStrip');
+  if (!list || !list.length) { strip.classList.add('hidden'); return; }
+  const pick = [...list].sort(() => Math.random() - .5).slice(0, 4);
+  strip.classList.remove('hidden');
+  strip.innerHTML = `<span class="sugg-label" id="suggLabel">${t('suggLabel')}</span>` +
+    pick.map(s => `<button class="sugg-chip" onclick="clickSuggestion(this)">${s}</button>`).join('');
+}
+
+function clickSuggestion(btn) {
+  const text = btn.textContent.trim();
+  const inp = document.getElementById('userInput');
+  inp.value = text;
+  sendMessage();
+}
+
+let selectedFigure = null;
+let conversationHistory = [];
+
+function renderFigureList() {
+  const figureList = document.getElementById('figureList');
+  figureList.innerHTML = '';
+  const isKo = currentLang === 'ko';
+  FIGURES.forEach(fig => {
+    const btn = document.createElement('button');
+    btn.className = 'figure-btn' + (selectedFigure && selectedFigure.id === fig.id ? ' active' : '');
+    btn.dataset.id = fig.id;
+    const displayName = isKo ? (fig.nameKo || fig.name) : fig.name;
+    const displayEra = isKo ? (fig.eraKo || fig.era) : fig.era;
+    btn.innerHTML = `<span style="font-size:1.4rem">${fig.emoji}</span>
+      <div style="flex:1">
+        <div>${displayName}</div>
+        <div class="figure-era">${fig.flag} ${displayEra}</div>
+      </div>`;
+    btn.onclick = () => selectFigure(fig.id);
+    figureList.appendChild(btn);
+  });
+}
+
+// Initial render
+renderFigureList();
+
+function selectFigure(id) {
+  selectedFigure = FIGURES.find(f => f.id === id);
+  conversationHistory = [];
+
+  // Apply figure theme
+  applyTheme(selectedFigure);
+
+  // Reset mode
+  currentMode = 'normal';
+
+  const isKo = currentLang === 'ko';
+  const displayName = isKo ? (selectedFigure.nameKo || selectedFigure.name) : selectedFigure.name;
+  const displayEra  = isKo ? (selectedFigure.eraKo  || selectedFigure.era)  : selectedFigure.era;
+  const displayDesc = isKo ? (selectedFigure.descKo  || selectedFigure.desc) : selectedFigure.desc;
+
+  // Update UI
+  renderFigureList(); // re-render with active state
+
+  document.getElementById('chatWho').textContent = displayName;
+  document.getElementById('chatHint').textContent = displayEra;
+
+  // Render mode strip
+  renderModes(id);
+
+  document.getElementById('figureInfoName').textContent = `${selectedFigure.emoji} ${displayName}`;
+  document.getElementById('figureInfoDesc').textContent = displayDesc;
+  document.getElementById('figureInfoSection').style.display = 'block';
+
+  // Show messages panel
+  document.getElementById('emptyState').style.display = 'none';
+  const msgs = document.getElementById('messages');
+  msgs.style.display = 'flex';
+  msgs.innerHTML = '';
+
+  // Greeting
+  addBotMessage(t('greeting', selectedFigure));
+
+  // Enable input
+  const inp = document.getElementById('userInput');
+  inp.disabled = false;
+  inp.placeholder = t('inputPlaceholder', displayName);
+  inp.focus();
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function addBotMessage(text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  const html = typeof marked !== 'undefined'
+    ? marked.parse(text, { breaks: true })
+    : text.replace(/\n/g, '<br>');
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = html;
+  const inner = document.createElement('div');
+  const isKo = currentLang === 'ko';
+  const displayName = isKo ? (selectedFigure?.nameKo || selectedFigure?.name || '') : (selectedFigure?.name || '');
+  inner.innerHTML = `<div class="bot-name">${displayName}</div>`;
+  inner.appendChild(bubble);
+  div.innerHTML = `<div class="avatar">${selectedFigure?.emoji || '🏛'}</div>`;
+  div.appendChild(inner);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  const suggs = currentLang === 'ko'
+    ? (FIGURE_SUGGESTIONS_KO[selectedFigure?.id] || FIGURE_SUGGESTIONS[selectedFigure?.id])
+    : FIGURE_SUGGESTIONS[selectedFigure?.id];
+  if (suggs) showSuggestions(suggs);
+  return bubble;
+}
+
+function addUserMessage(text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `
+    <div class="avatar">🙋</div>
+    <div class="bubble">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="avatar">${selectedFigure.emoji}</div>
+    <div class="bubble">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || !selectedFigure) return;
+
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('Please enter your API Key.'); return; }
+
+  input.value = '';
+  addUserMessage(text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  document.getElementById('sendBtn').disabled = true;
+  input.disabled = true;
+  showTyping();
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 600,
+        messages: [
+          { role: 'system', content: selectedFigure.system + getModePromptSuffix() },
+          ...conversationHistory
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `API Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const reply = data.choices[0].message.content.trim();
+    const finishReason = data.choices[0].finish_reason;
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    hideTyping();
+    const bubbleEl = addBotMessage(reply);
+    if (finishReason === 'length') addContinueButton(bubbleEl);
+
+  } catch (err) {
+    hideTyping();
+    addBotMessage(t('errPrefix') + err.message);
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+function addContinueButton(bubbleEl) {
+  const btn = document.createElement('button');
+  btn.className = 'continue-btn';
+  btn.textContent = t('continueBtn');
+  btn.onclick = () => continueMessage(bubbleEl, btn);
+  bubbleEl.appendChild(btn);
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function continueMessage(bubbleEl, btn) {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert(t('alertApi')); return; }
+
+  btn.disabled = true;
+  btn.textContent = t('continuePending');
+  conversationHistory.push({ role: 'user', content: t('continuePrompt') });
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 600,
+        messages: [
+          { role: 'system', content: selectedFigure.system + getModePromptSuffix() },
+          ...conversationHistory
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `API Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const continuation = data.choices[0].message.content.trim();
+    const finishReason = data.choices[0].finish_reason;
+    conversationHistory.push({ role: 'assistant', content: continuation });
+
+    btn.remove();
+    const contHtml = typeof marked !== 'undefined'
+      ? marked.parse(continuation, { breaks: true })
+      : continuation.replace(/\n/g, '<br>');
+    const divider = document.createElement('hr');
+    divider.className = 'continue-divider';
+    bubbleEl.appendChild(divider);
+    const span = document.createElement('div');
+    span.innerHTML = contHtml;
+    bubbleEl.appendChild(span);
+
+    if (finishReason === 'length') addContinueButton(bubbleEl);
+
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = t('continueBtn');
+    conversationHistory.pop();
+  }
+}
+
+function clearChat() {
+  if (!selectedFigure) return;
+  conversationHistory = [];
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  addBotMessage(t('resetMsg', selectedFigure));
+}
+
+// Enter key
+document.getElementById('userInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+</script>
+</body>
+</html>
