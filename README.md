@@ -212,7 +212,8 @@ Fonts     ──  Google Fonts  (Special Elite · Philosopher · Cinzel ·
 
 ---
 
----
+<details>
+<summary>🇰🇷 한국어 설명 보기</summary>
 
 <div align="center">
 
@@ -409,3 +410,5 @@ AI 모델    ──  OpenAI GPT-4o
 | 기본 폰트로 표시됨 | 인터넷 연결 확인 (Google Fonts 로드 필요) |
 | 답변이 중간에 잘림 | 메시지 하단 **📖 계속 읽기** 버튼을 클릭하세요 |
 | 배경이 바뀌지 않음 | 최신 브라우저(Chrome/Safari/Firefox)로 열어보세요 |
+
+</details>
