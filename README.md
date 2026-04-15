@@ -19,7 +19,8 @@
 </div>
 
 ---
-![Uploading 스크린샷 2026-04-15 오후 9.39.35.png…]()
+<img width="1470" height="956" alt="스크린샷 2026-04-15 오후 9 40 49" src="https://github.com/user-attachments/assets/a8ab0c3c-426d-4e82-9c69-002287a73c24" />
+
 
 ## ✨ Highlights
 
