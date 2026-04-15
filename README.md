@@ -21,6 +21,7 @@
 ---
 <img width="1447" height="798" alt="스크린샷 2026-04-15 오후 9 41 36" src="https://github.com/user-attachments/assets/8bfe18f3-2ad1-483f-bf13-c425c664e262" />
 <img width="1450" height="801" alt="스크린샷 2026-04-15 오후 9 42 17" src="https://github.com/user-attachments/assets/3e115ddf-9908-40fd-87cb-16a5142f761b" />
+<img width="1449" height="799" alt="스크린샷 2026-04-15 오후 9 47 33" src="https://github.com/user-attachments/assets/25e063b3-069e-4d9a-80d5-e4ea7802ee45" />
 
 
 ## ✨ Highlights
